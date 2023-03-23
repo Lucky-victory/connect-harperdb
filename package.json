@@ -1,0 +1,40 @@
+{
+  "name": "connect-harperdb",
+  "version": "0.0.1-beta",
+  "description": "HarperDB session store for ExpressJS",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "tsc -p tsconfig.json",
+     "fix:prettier": "prettier \"lib/**/*.ts\" --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lucky-victory/connect-harperdb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lucky-victory/connect-harperdb/issues"
+  },
+  "homepage": "https://github.com/Lucky-victory/connect-harperdb#readme",
+  "devDependencies": {
+    "@types/express-session": "^1.17.7",
+    "@types/node": "^18.15.5",
+    "prettier": "^2.8.6",
+    "typescript": "^5.0.2"
+  },
+  "dependencies": {
+    "harpee": "^4.0.11"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": true,
+    "trailingComma": "es5"
+  },
+  "peerDependencies": {
+    "express-session": "^1.17.3"
+  }
+}
