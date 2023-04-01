@@ -41,7 +41,7 @@ test.after.always(async () => {
 });
 
 test.serial('should store and retrieve session from HarperDB', async (t) => {
-  const { store, asyncStore  } = storeCreator();
+  const { asyncStore  } = storeCreator();
   const session = { cookie: { maxAge: 2000 }, name: 'John' } as unknown as SessionData;
 
   // Store session
@@ -59,7 +59,7 @@ test.serial('should store and retrieve session from HarperDB', async (t) => {
 
 test.serial('should delete session from HarperDB', async (t) => {
   
-  const { store, asyncStore  } = storeCreator();
+  const { asyncStore  } = storeCreator();
   const session = { cookie: { maxAge: 2000 }, name: 'John' } as unknown as SessionData;;
 
   // Store session
@@ -74,30 +74,8 @@ test.serial('should delete session from HarperDB', async (t) => {
 
 });
 
-test.serial('should auto-remove expired sessions', async (t) => {
-  const { store, asyncStore } = storeCreator({ autoRemove: true, autoRemoveInterval: 1 });
-  
-  const session = { cookie: { maxAge: 1000 }, name: 'John' } as unknown as SessionData;;
-
-  // Store session
-  await asyncStore.set('123', session)
-    
-
-  // Wait for session to expire
-  await new Promise<void>((resolve) =>
-    setTimeout(() => {
-      t.pass('Session expired');
-      resolve();
-    }, 1500),
-  );
-
-  // Verify session auto-removal
-  const retrievedSession = await asyncStore.get('123')
-  t.is(retrievedSession, undefined);
-})
-
 test.serial('should return all sessions from HarperDB', async (t) => {
-  const { store, asyncStore  } = storeCreator();
+  const { asyncStore  } = storeCreator();
   const session = { cookie: { maxAge: 1000 }, name: 'John' } as unknown as SessionData;;
 
   // Store session
