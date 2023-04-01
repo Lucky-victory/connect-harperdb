@@ -8,7 +8,7 @@
     "prepublishOnly": "npm run build",
     "build": "tsc -p tsconfig.json",
     "fix:prettier": "prettier \"lib/**/*.ts\" --write",
-    "test":"nyc ava src/test.ts"
+    "test": "nyc ava src/test/test.ts"
   },
   "repository": {
     "type": "git",
@@ -32,9 +32,12 @@
   "homepage": "https://github.com/Lucky-victory/connect-harperdb#readme",
   "devDependencies": {
     "@ava/typescript": "^4.0.0",
+    "@types/debug": "^4.1.7",
     "@types/express-session": "^1.17.7",
     "@types/node": "^18.15.5",
     "ava": "^5.2.0",
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.3",
     "nyc": "^15.1.0",
     "prettier": "^2.8.6",
     "typescript": "^5.0.2"
@@ -49,12 +52,13 @@
   },
   "peerDependencies": {
     "express-session": "^1.17.3"
-  },"ava": {
-		"typescript": {
-			"rewritePaths": {
-				"src/": "dist/"
-			},
-			"compile": false
-		}
-	}
+  },
+  "ava": {
+    "typescript": {
+      "rewritePaths": {
+        "src/": "dist/"
+      },
+      "compile": false
+    }
+  }
 }
