@@ -1,6 +1,6 @@
 {
   "name": "connect-harperdb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HarperDB session store for ExpressJS",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -67,5 +67,8 @@
       },
       "compile": false
     }
+  },
+  "dependencies": {
+    "harpee": "^4.0.11"
   }
 }
