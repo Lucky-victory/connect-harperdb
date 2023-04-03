@@ -5,62 +5,59 @@ import HarperDBStore from '../index';
 import { harpeeClient, hdbStoreOptions, storeCreator } from './helper';
 
 
+test.before((t)=>{
+const store=new HarperDBStore({})
+})
 test.before(async () => {
-  
-  await harpeeClient.util.createSchema({
-    schema: hdbStoreOptions.schema,
-
-  });
-    await harpeeClient.util.createTable({
-    schema: hdbStoreOptions.schema,
-      table: hdbStoreOptions.table,
-    hashAttribute:'sid'
-  });
+  await harpeeClient.model.init();
 });
 
 test.beforeEach(async () => {
   await harpeeClient.util.dropTable({
-
     schema: hdbStoreOptions.schema,
     table: hdbStoreOptions.table,
   });
   await harpeeClient.util.createTable({
     schema: hdbStoreOptions.schema,
     table: hdbStoreOptions.table,
-    hashAttribute:'sid'
+    hashAttribute: 'sid',
   });
-
 });
 
 test.after.always(async () => {
-  
   await harpeeClient.util.dropSchema({
-     schema: hdbStoreOptions.schema,
-
+    schema: hdbStoreOptions.schema,
   });
 });
 
-test.serial('should store and retrieve session from HarperDB', async (t) => {
-  const { asyncStore  } = storeCreator();
-  const session = { cookie: { maxAge: 2000 }, name: 'John' } as unknown as SessionData;
+test.serial('should store and retrieve session ', async (t) => {
+  const { asyncStore } = storeCreator();
+  const session = {
+    cookie: { maxAge: 2000 },
+    name: 'John',
+  } as unknown as SessionData;
 
   // Store session
-  await  asyncStore.set('123', session);
+  await asyncStore.set('123', session);
 
   // Retrieve session
-  const retrievedSession = await asyncStore. get('123') as SessionData;
-    t.deepEqual(retrievedSession, session);
+  const retrievedSession = (await asyncStore.get('123')) as SessionData;
+  t.deepEqual(retrievedSession, session);
 
   // Verify session expiration
   const expiration = Date.now() + 2000;
-  const diff = Math.abs((Date.now() + (retrievedSession.cookie?.maxAge as number)) - expiration);
+  const diff = Math.abs(
+    Date.now() + (retrievedSession.cookie?.maxAge as number) - expiration
+  );
   t.true(diff < 1000); // Allow for up to 1 second of difference
 });
 
-test.serial('should delete session from HarperDB', async (t) => {
-  
-  const { asyncStore  } = storeCreator();
-  const session = { cookie: { maxAge: 2000 }, name: 'John' } as unknown as SessionData;;
+test.serial('should delete session ', async (t) => {
+  const { asyncStore } = storeCreator();
+  const session = {
+    cookie: { maxAge: 2000 },
+    name: 'John',
+  } as unknown as SessionData;
 
   // Store session
   await asyncStore.set('123', session);
@@ -69,45 +66,53 @@ test.serial('should delete session from HarperDB', async (t) => {
   await asyncStore.destroy('123');
 
   // Verify session deletion
-  const retrievedSession = await  asyncStore.get('123')
+  const retrievedSession = await asyncStore.get('123');
   t.is(retrievedSession, undefined);
-
 });
 
-test.serial('should return all sessions from HarperDB', async (t) => {
-  const { asyncStore  } = storeCreator();
-  const session = { cookie: { maxAge: 1000 }, name: 'John' } as unknown as SessionData;;
+test.serial('should return all sessions ', async (t) => {
+  const { asyncStore } = storeCreator();
+  const session = {
+    cookie: { maxAge: 1000 },
+    name: 'John',
+  } as unknown as SessionData;
 
   // Store session
 
   await asyncStore.set('123', session);
-  
-   const retrievedSessions= await asyncStore.all()
-    
-      t.deepEqual([session],retrievedSessions)
-    
-  
 
-})
+  const retrievedSessions = await asyncStore.all();
 
-test.serial('should return the total length of sessions from HarperDB',async (t)=>{
+  t.deepEqual([session], retrievedSessions);
+});
 
-  const store = new HarperDBStore({ ...hdbStoreOptions });
-  const session = { cookie: { maxAge: 1000 }, name: 'John' } as unknown as SessionData;;
+test.serial('should clear all sessions', async (t) => {
+  const { asyncStore } = storeCreator();
+  const session = {
+    cookie: { maxAge: 1000 },
+    name: 'John',
+  } as unknown as SessionData;
 
   // Store session
-  await new Promise<void>((resolve) =>
-    store.set('123', session, (err) => {
-      t.falsy(err);
-      resolve();
-    }),
-  );
 
-   await new Promise<number>((resolve, reject) => {
-    store.length((err, length) => {
-      t.falsy(err);
-      t.is(length, 1);
-      resolve(length as number)
-    })
-  })
-})
+  await asyncStore.set('123', session);
+  await asyncStore.clear();
+  const retrievedSessions = (await asyncStore.all()) as SessionData[];
+
+  t.deepEqual([] as SessionData[], retrievedSessions);
+});
+
+test.serial('should return the length of sessions ', async (t) => {
+  const { asyncStore } = storeCreator();
+  const session = {
+    cookie: { maxAge: 1000 },
+    name: 'John',
+  } as unknown as SessionData;
+
+  // Store session
+
+  await asyncStore.set('123', session);
+
+  const length = await asyncStore.length();
+  t.is(length, 1);
+});

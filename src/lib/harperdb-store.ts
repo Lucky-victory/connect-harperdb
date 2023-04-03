@@ -1,13 +1,11 @@
 import { promisify } from 'util';
-import { Store,SessionData } from 'express-session';
+import { Store, SessionData } from 'express-session';
 import { HarpeeModel } from 'harpee/types/core/harpee-model';
 import Debug from 'debug';
 import { harpee, HType } from 'harpee';
-const { createConnection, Schema, Model,Sqler } = harpee;
-
+const { createConnection, Schema, Model, Sqler } = harpee;
 
 const debug = Debug('connect-harperdb');
-
 
 export interface HarperDBAuth {
   /**
@@ -43,7 +41,7 @@ export interface HarperDBStoreOptions {
    */
   table?: string;
   ttl?: number;
-  serialize?: (object: any) =>string;
+  serialize?: (object: any) => string;
   autoRemove?: boolean;
   autoRemoveInterval?: number;
 }
@@ -55,7 +53,7 @@ interface HarperDBSession {
 class HarperDBStore extends Store {
   private sessionModel: HarpeeModel;
   private ttl: number;
-  private serialize: (sess:SessionData) => string;
+  private serialize: (sess: SessionData) => string;
   private schema: string;
   private table: string;
   constructor(options: HarperDBStoreOptions) {
@@ -72,141 +70,141 @@ class HarperDBStore extends Store {
     this.sessionModel = model;
     this.ttl = options.ttl || 1209600;
     this.serialize = options.serialize || JSON.stringify;
-
-  
   }
 
-   get(sid: string, callback: (err?: any, session?: SessionData | null) => void) {
-     (async () => {
+  get(
+    sid: string,
+    callback: (err?: any, session?: SessionData | null) => void
+  ) {
+    (async () => {
+      try {
+        debug(`HarperDBStore#get=${sid}`);
+        let { data: result } = await this.sessionModel.findOne<HarperDBSession>(
+          {
+            sid,
+          },
+          ['session', 'expiration']
+        );
 
-       try {
-         debug(`HarperDBStore#get=${sid}`)
-      let { data:result }  = await this.sessionModel.findOne<HarperDBSession>(
-        {
-          sid,
-        },
-        ['session','expiration']
-      );
+        if (!result) {
+          return callback(null);
+        }
 
-      if (!result) {
-return   callback(null);
+        const sessionData = result.session;
+        this.emit('get', sid);
+        return callback(null, sessionData);
+      } catch (error) {
+        return callback(error);
       }
-
-        const sessionData = result.session ;
-          this.emit('get', sid);
-       return   callback(null, sessionData);
-
-
-
-    } catch (error) {
-
-
-      return callback(error);
-    }
-  })()
+    })();
   }
 
   set(sid: string, session: SessionData, callback: (err?: any) => void) {
     (async () => {
-
       try {
-        debug(`HarperDBStore#set=${sid}`)
-      const _session = await this.serialize(session);
-      const expiration =Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
+        debug(`HarperDBStore#set=${sid}`);
+        const _session = await this.serialize(session);
+        const expiration =
+          Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
 
-      await this.sessionModel.create({ sid, session: _session, expiration });
+        await this.sessionModel.create({ sid, session: _session, expiration });
 
-      this.emit('set', sid);
-    } catch (error) {
-
-      return  callback(error);
-    }
-    return   callback(null);
-  })()
+        this.emit('set', sid);
+      } catch (error) {
+        return callback(error);
+      }
+      return callback(null);
+    })();
   }
-destroy(sid: string, callback: (err?: any) => void) {
+  destroy(sid: string, callback: (err?: any) => void) {
     (async () => {
-
       try {
-        debug(`HarperDBStore#destroy()`)
-      await this.sessionModel.findByIdAndRemove([sid]);
-      this.emit('destroy',sid);
-      return  callback(null);
-    } catch (error) {
-
-
-      return callback(error);
-    }
-  })()
+        debug(`HarperDBStore#destroy()`);
+        await this.sessionModel.findByIdAndRemove([sid]);
+        this.emit('destroy', sid);
+        return callback(null);
+      } catch (error) {
+        return callback(error);
+      }
+    })();
   }
 
-  length(callback: (err: any, length?: number | undefined) => void):void {
+  length(callback: (err: any, length?: number | undefined) => void): void {
     (async () => {
-
       try {
-        debug(`HarperDBStore#length()`)
-         const {schema, table }=this;
-      const queryBuilder = new Sqler();
-       const { query } = queryBuilder.selectCount('sid').as('total_session').from(schema, table);
+        debug(`HarperDBStore#length()`);
+        const { schema, table } = this;
+        const queryBuilder = new Sqler();
+        const { query } = queryBuilder
+          .selectCount('sid')
+          .as('total_session')
+          .from(schema, table);
 
-      const { data } = await this.sessionModel.query<{total_session:number}[]>(query);
-      const { total_session } = (data as { total_session: number }[])[0];
+        const { data } = await this.sessionModel.query<
+          { total_session: number }[]
+        >(query);
+        const { total_session } = (data as { total_session: number }[])[0];
 
-
-      return  callback(null, total_session);
-
-    } catch (error) {
-      return callback(error)
-    }
-  })()
+        return callback(null, total_session);
+      } catch (error) {
+        return callback(error);
+      }
+    })();
   }
-  all(callback: (err: any, obj?: SessionData[] | { [sid: string]: SessionData; } | null | undefined) => void):void {
+  all(
+    callback: (
+      err: any,
+      obj?: SessionData[] | { [sid: string]: SessionData } | null | undefined
+    ) => void
+  ): void {
     (async () => {
-
       try {
-        debug(`HarperDBStore#all()`)
-      const { data:result }=await this.sessionModel.find<HarperDBSession[]>({getAttributes:['sid','expiration','session']})
-      const sessions = result?.map((item) => item.session);
+        debug(`HarperDBStore#all()`);
+        const { data: result } = await this.sessionModel.find<
+          HarperDBSession[]
+        >({ getAttributes: ['sid', 'expiration', 'session'] });
+        const sessions = result?.map((item) => item.session);
 
-
-      this.emit('all', sessions);
-     return callback(null, sessions);
-    } catch (error) {
-      return callback(error)
-    }
-  })()
+        this.emit('all', sessions);
+        return callback(null, sessions);
+      } catch (error) {
+        return callback(error);
+      }
+    })();
   }
-   clear(callback?: (err?: any) => void): void {
+  clear(callback?: (err?: any) => void): void {
     (async () => {
-
       try {
-        debug(`HarperDBStore#clear()`)
+        debug(`HarperDBStore#clear()`);
         await this.sessionModel.clearAll();
 
-        return callback && callback()
-
+        return callback && callback();
       } catch (error) {
-        return   callback &&  callback(error)
+        return callback && callback(error);
       }
-    })()
+    })();
   }
-  touch(sid: string, session: SessionData, callback: (err?: any) => void):void {
+  touch(
+    sid: string,
+    session: SessionData,
+    callback: (err?: any) => void
+  ): void {
     (async () => {
-
       try {
-        debug(`HarperDBStore#touch=${sid}`)
-      const expiration = Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
+        debug(`HarperDBStore#touch=${sid}`);
+        const expiration =
+          Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
 
-      const { data } = await this.sessionModel.update([{ sid, expiration }]);
-      if (data?.update_hashes.length === 0) {
-      return  callback(new Error('Unable to find the session to touch'));
+        const { data } = await this.sessionModel.update([{ sid, expiration }]);
+        if (data?.update_hashes.length === 0) {
+          return callback(new Error('Unable to find the session to touch'));
+        }
+        this.emit('touch', sid, session);
+        return callback(null);
+      } catch (error) {
+        return callback(error);
       }
-      this.emit('touch', sid,session);
-      return callback(null);
-    } catch (error) {
-      return  callback(error);
-    }
-  })()
+    })();
   }
   private harpeeClient({ config, schema, table }: HarpeeClientOptions) {
     createConnection(config);
@@ -222,13 +220,12 @@ destroy(sid: string, callback: (err?: any) => void) {
     const sessionModel = new Model(table as string, sessionSchema);
     const init = async () => {
       await sessionModel.init();
-}
+    };
     return {
-      init:(async()=> await init()),
+      init: async () => await init(),
       model: sessionModel,
     };
   }
-
 }
 
 export default HarperDBStore;
