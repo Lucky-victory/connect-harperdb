@@ -60,6 +60,19 @@ class HarperDBStore extends Store {
     super();
     this.schema = options.schema ?? 'sessionSchema';
     this.table = options.table ?? 'sessions';
+
+    if (
+      !options?.config ||
+      !(
+        options?.config?.host &&
+        options?.config?.password &&
+        options?.config?.username
+      )
+    ) {
+      throw new Error('config `host`, `username` & `passowrd` are required');
+
+      return;
+    }
     const { model, init } = this.harpeeClient({
       config: options.config,
       schema: this.schema,
@@ -104,8 +117,9 @@ class HarperDBStore extends Store {
       try {
         debug(`HarperDBStore#set=${sid}`);
         const _session = await this.serialize(session);
-        const expiration =
-          Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
+        const expiration = new Date(
+          Date.now() + (session.cookie?.maxAge || this.ttl * 1000)
+        );
 
         await this.sessionModel.create({ sid, session: _session, expiration });
 
@@ -192,8 +206,9 @@ class HarperDBStore extends Store {
     (async () => {
       try {
         debug(`HarperDBStore#touch=${sid}`);
-        const expiration =
-          Date.now() + (session.cookie?.maxAge || this.ttl * 1000);
+        const expiration = new Date(
+          Date.now() + (session.cookie?.maxAge || this.ttl * 1000)
+        );
 
         const { data } = await this.sessionModel.update([{ sid, expiration }]);
         if (data?.update_hashes.length === 0) {

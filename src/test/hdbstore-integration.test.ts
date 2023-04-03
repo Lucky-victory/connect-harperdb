@@ -19,7 +19,6 @@ function createSupertestAgent(
       saveUninitialized: false,
       resave: false,
       store: store,
-      cookie: { maxAge: 8640000 * 4 * 1000 },
     })
   );
   app.get('/', function (req, res) {
@@ -30,9 +29,7 @@ function createSupertestAgent(
     }
     res.status(200).send({ views: req.session.views });
   });
-  app.get('/ping', function (req, res) {
-    res.status(200).send({ views: req.session.views });
-  });
+
   const agent = request.agent(app);
   return agent;
 }
@@ -48,14 +45,9 @@ function createSupertetAgentWithDefault(
   }
 ) {
   return createSupertestAgent(
-    { secret: 'foo', key: 'user.sid', ...sessionOpts },
+    { secret: 'secret', key: 'user.sid', ...sessionOpts },
     {
       ...hdbStoreOpts,
-      config: {
-        username: process.env.DB_USER as string,
-        host: process.env.DB_HOST as string,
-        password: process.env.DB_PASS as string,
-      },
     }
   );
 }
@@ -63,7 +55,6 @@ test.serial('simple case', async (t) => {
   const agent = createSupertetAgentWithDefault();
   const response = await agent.get('/').expect(200);
   const cookie = response.headers['set-cookie'];
-  console.log({ cookie });
 
   const res = await agent.get('/').expect(200);
   t.is(res.body.views, 1);

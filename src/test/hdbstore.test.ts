@@ -4,10 +4,6 @@ import { promisify } from 'util';
 import HarperDBStore from '../index';
 import { harpeeClient, hdbStoreOptions, storeCreator } from './helper';
 
-
-test.before((t)=>{
-const store=new HarperDBStore({})
-})
 test.before(async () => {
   await harpeeClient.model.init();
 });
@@ -29,12 +25,16 @@ test.after.always(async () => {
     schema: hdbStoreOptions.schema,
   });
 });
+test.serial('should throw an error', (t) => {
+  //@ts-ignore
+  t.throws(() => new HarperDBStore({}));
+});
 
 test.serial('should store and retrieve session ', async (t) => {
   const { asyncStore } = storeCreator();
   const session = {
     cookie: { maxAge: 2000 },
-    name: 'John',
+    name: 'Lucky',
   } as unknown as SessionData;
 
   // Store session
@@ -56,7 +56,7 @@ test.serial('should delete session ', async (t) => {
   const { asyncStore } = storeCreator();
   const session = {
     cookie: { maxAge: 2000 },
-    name: 'John',
+    name: 'Lucky',
   } as unknown as SessionData;
 
   // Store session
@@ -74,7 +74,7 @@ test.serial('should return all sessions ', async (t) => {
   const { asyncStore } = storeCreator();
   const session = {
     cookie: { maxAge: 1000 },
-    name: 'John',
+    name: 'Lucky',
   } as unknown as SessionData;
 
   // Store session
@@ -90,7 +90,7 @@ test.serial('should clear all sessions', async (t) => {
   const { asyncStore } = storeCreator();
   const session = {
     cookie: { maxAge: 1000 },
-    name: 'John',
+    name: 'Lucky',
   } as unknown as SessionData;
 
   // Store session
@@ -106,7 +106,7 @@ test.serial('should return the length of sessions ', async (t) => {
   const { asyncStore } = storeCreator();
   const session = {
     cookie: { maxAge: 1000 },
-    name: 'John',
+    name: 'Lucky',
   } as unknown as SessionData;
 
   // Store session

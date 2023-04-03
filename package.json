@@ -1,13 +1,13 @@
 {
   "name": "connect-harperdb",
-  "version": "0.0.3-beta",
+  "version": "1.0.0",
   "description": "HarperDB session store for ExpressJS",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
     "build": "tsc -p tsconfig.json",
-    "fix:prettier": "prettier \"lib/**/*.ts\" --write",
+    "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "test": "nyc ava"
   },
   "repository": {
@@ -15,7 +15,8 @@
     "url": "git+https://github.com/Lucky-victory/connect-harperdb.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/test"
   ],
   "keywords": [
     "harperdb",

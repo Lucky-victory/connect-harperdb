@@ -1,3 +1,3 @@
-import HarperDBStore from "./lib/harperdb-store";
+import HarperDBStore from './lib/harperdb-store';
 
 export = HarperDBStore;
